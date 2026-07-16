@@ -76,7 +76,7 @@ router.post("/upload", upload.single("resume"), async (req, res) => {
     }
 
     // 2. Extract resume text
-    const resumeText = await extractResumeText(req.file.path, req.file.mimetype);
+    const resumeText = await extractResumeText(req.file.path, req.file.originalname);
 
     // 3. Fetch GitHub repo README(s) as additional evidence
     const repoSources = await fetchAllRepos(githubUrls);

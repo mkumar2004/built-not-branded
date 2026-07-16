@@ -1,32 +1,29 @@
 import fs from "fs";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const { PDFParse, VerbosityLevel } = require("pdf-parse");
+import path from "path";
 
 /**
  * Extracts plain text from an uploaded resume file.
- * Supports PDF and plain text (.txt). Extend with mammoth for .docx if needed.
- *
- * pdf-parse v2 API:
- *   1. new PDFParse({ data: Buffer, verbosity })
- *   2. await parser.load()
- *   3. const { pages } = await parser.getText()
- *   4. pages is an array of { text: string }
+ * Supports PDF (.pdf) and plain text (.txt).
+ * 
+ * Uses file EXTENSION (not MIME type) for detection because Vercel/multer
+ * can report incorrect MIME types (e.g., "application/octet-stream" for .txt).
+ * 
+ * pdf-parse is imported lazily to avoid the known issue where it tries to
+ * read test PDF files from disk at import time, which crashes on Vercel.
  */
-export async function extractResumeText(filePath, mimeType) {
-  if (mimeType === "application/pdf") {
-    const data = fs.readFileSync(filePath);
-    const parser = new PDFParse({ data, verbosity: VerbosityLevel.ERRORS });
-    await parser.load();
-    const result = await parser.getText();
-    // result.pages = [{ text: string }, ...]
-    const fullText = result.pages.map((p) => p.text).join("\n").trim();
-    return fullText;
+export async function extractResumeText(filePath, originalName) {
+  // Determine type from the original filename extension (fallback: filepath)
+  const name = (originalName || filePath || "").toLowerCase();
+  const ext = path.extname(name);
+
+  if (ext === ".pdf") {
+    // Lazy import: avoids pdf-parse running fs.readFile on its test fixtures at startup
+    const pdfParse = (await import("pdf-parse")).default;
+    const dataBuffer = fs.readFileSync(filePath);
+    const result = await pdfParse(dataBuffer);
+    return result.text?.trim() || "";
   }
 
-  if (mimeType === "text/plain") {
-    return fs.readFileSync(filePath, "utf-8").trim();
-  }
-
-  throw new Error(`Unsupported resume file type: ${mimeType}`);
+  // .txt, no extension, or anything else — treat as plain text
+  return fs.readFileSync(filePath, "utf-8").trim();
 }
