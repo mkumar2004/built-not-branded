@@ -1,0 +1,21 @@
+{
+  "name": "built-not-branded",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently --names frontend,backend --prefix-colors blue,green \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
+    "start": "npm run start --workspace=backend"
+  },
+  "dependencies": {
+    "lucide-react": "^1.24.0"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
