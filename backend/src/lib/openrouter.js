@@ -4,10 +4,20 @@
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"; // free-tier model
 
-export async function callOpenRouter(messages) {
+export async function callOpenRouter(messages, jsonMode = true) {
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.open_Router_ai;
   if (!apiKey) {
     throw new Error("OpenRouter API key (OPENROUTER_API_KEY or open_Router_ai) is not set");
+  }
+
+  const reqBody = {
+    model: OPENROUTER_MODEL,
+    messages,
+    temperature: 0.2,
+  };
+
+  if (jsonMode) {
+    reqBody.response_format = { type: "json_object" };
   }
 
   const res = await fetch(OPENROUTER_URL, {
@@ -16,12 +26,7 @@ export async function callOpenRouter(messages) {
       "Content-Type": "application/json",
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify({
-      model: OPENROUTER_MODEL,
-      messages,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-    }),
+    body: JSON.stringify(reqBody),
   });
 
   if (!res.ok) {

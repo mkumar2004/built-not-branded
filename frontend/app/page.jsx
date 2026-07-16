@@ -78,12 +78,9 @@ export default function SkillFitLanding() {
 
           <nav className="nav-links">
             <a href="#features" className="nav-link">Features</a>
-            <a href="#comparison" className="nav-link">Traditional vs SkillFit</a>
             <a href="#how-it-works" className="nav-link">How It Works</a>
-            <a href="#preview" className="nav-link">Platform Preview</a>
-            <a href="#benefits" className="nav-link">Benefits</a>
-            <a href="#testimonials" className="nav-link">Testimonials</a>
-            <a href="#faq" className="nav-link">FAQ</a>
+            <a href="/candidate" className="nav-link" style={{ color: "#c084fc", fontWeight: 600 }}>Candidate Portal</a>
+            <a href="/recruiter" className="nav-link" style={{ color: "#60a5fa", fontWeight: 600 }}>Recruiter Dashboard</a>
           </nav>
         </div>
       </header>
@@ -115,7 +112,8 @@ export default function SkillFitLanding() {
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "3rem" }}>
-               <a href="/get-started" className="btn btn-primary">Get Started <ArrowRight size={17} /></a>
+               <a href="/Onboard" className="btn btn-primary">Apply as Candidate <ArrowRight size={17} /></a>
+               <a href="/recruiter" className="btn btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "0.8rem 1.6rem", borderRadius: "10px", color: "#fff", fontWeight: 600 }}>Recruiter Console</a>
             </div>
 
             {/* Badges */}

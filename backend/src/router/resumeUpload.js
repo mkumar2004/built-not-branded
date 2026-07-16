@@ -12,6 +12,9 @@ import {
   saveAnalysis,
   insertChunks,
   matchChunks,
+  getReportByUserIdentifier,
+  updateReport,
+  deleteChunksByReportId,
 } from "../reportsRepo.js";
 
 const router = express.Router();
@@ -24,10 +27,12 @@ const upload = multer({ dest: "uploads/" });
  *   - role: string
  *   - experience_level: string
  *   - github_urls: JSON string array, e.g. '["https://github.com/user/repo"]'
+ *   - email: string (optional, for tracking same user)
+ *   - user_id: string (optional, for tracking same user)
  */
 router.post("/upload", upload.single("resume"), async (req, res) => {
   try {
-    const { role, experience_level } = req.body;
+    const { role, experience_level, email, user_id } = req.body;
     const githubUrls = req.body.github_urls ? JSON.parse(req.body.github_urls) : [];
 
     if (!req.file) return res.status(400).json({ error: "resume file is required" });
@@ -35,12 +40,32 @@ router.post("/upload", upload.single("resume"), async (req, res) => {
       return res.status(400).json({ error: "role and experience_level are required" });
     }
 
-    // 1. Create the report row up front so we have an id to attach everything to
-    const report = await createReport({
-      role,
-      experience_level,
-      github_urls: githubUrls,
-    });
+    // 1. Check if same user already has a report, if so update/upsert it
+    let report;
+    if (user_id || email) {
+      const existingReport = await getReportByUserIdentifier({ user_id, email });
+      if (existingReport) {
+        console.log(`[resumeUpload] Found existing report ${existingReport.id} for user, updating...`);
+        report = await updateReport(existingReport.id, {
+          role,
+          experience_level,
+          github_urls: githubUrls,
+        });
+        // Clear previous vector chunks to avoid duplicate/conflicting data
+        await deleteChunksByReportId(existingReport.id);
+      }
+    }
+
+    if (!report) {
+      // Create new report
+      report = await createReport({
+        role,
+        experience_level,
+        github_urls: githubUrls,
+        user_id,
+        email,
+      });
+    }
 
     // 2. Extract resume text
     const resumeText = await extractResumeText(req.file.path, req.file.mimetype);

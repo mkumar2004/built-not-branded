@@ -1,4 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
+import { fileURLToPath } from "url";
+import path from "path";
+
+// Load .env before reading env vars — needed because ESM imports are hoisted
+// and this module is evaluated before dotenv.config() runs in server.js.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+config({ path: path.resolve(__dirname, "../.env") });
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -19,12 +27,12 @@ if (supabaseUrl && supabaseAnonKey) {
 const mockReports = new Map();
 const mockChunks = [];
 
-export async function createReport({ role, experience_level, github_urls }) {
+export async function createReport({ role, experience_level, github_urls, user_id, email }) {
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from("reports")
-        .insert([{ role, experience_level, github_urls }])
+        .insert([{ role, experience_level, github_urls, user_id, email }])
         .select()
         .single();
 
@@ -42,6 +50,8 @@ export async function createReport({ role, experience_level, github_urls }) {
     role,
     experience_level,
     github_urls,
+    user_id,
+    email,
     analysis: null,
     created_at: new Date().toISOString(),
   };
@@ -172,3 +182,98 @@ export async function matchChunks(reportId, queryEmbedding, limit = 8) {
   scored.sort((a, b) => b.similarity - a.similarity);
   return scored.slice(0, limit);
 }
+
+export async function getReportByUserIdentifier({ user_id, email }) {
+  if (supabase) {
+    try {
+      let query = supabase.from("reports").select("*");
+      if (user_id) {
+        query = query.eq("user_id", user_id);
+      } else if (email) {
+        query = query.eq("email", email);
+      } else {
+        return null;
+      }
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error("[reportsRepo] Supabase getReportByUserIdentifier error:", err.message);
+    }
+  }
+
+  // Fallback
+  for (const report of mockReports.values()) {
+    if (user_id && report.user_id === user_id) return report;
+    if (email && report.email === email) return report;
+  }
+  return null;
+}
+
+export async function updateReport(id, { role, experience_level, github_urls }) {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("reports")
+        .update({ role, experience_level, github_urls, analysis: null })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error("[reportsRepo] Supabase updateReport error:", err.message);
+    }
+  }
+
+  // Fallback
+  const report = mockReports.get(id);
+  if (report) {
+    report.role = role;
+    report.experience_level = experience_level;
+    report.github_urls = github_urls;
+    report.analysis = null;
+    mockReports.set(id, report);
+  }
+  return report || null;
+}
+
+export async function deleteChunksByReportId(reportId) {
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from("chunks")
+        .delete()
+        .eq("report_id", reportId);
+      if (error) throw error;
+    } catch (err) {
+      console.error("[reportsRepo] Supabase deleteChunksByReportId error:", err.message);
+    }
+  }
+
+  // Fallback
+  for (let i = mockChunks.length - 1; i >= 0; i--) {
+    if (mockChunks[i].report_id === reportId) {
+      mockChunks.splice(i, 1);
+    }
+  }
+}
+
+export async function getAllReports() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error("[reportsRepo] Supabase getAllReports error, falling back:", err.message);
+    }
+  }
+
+  return Array.from(mockReports.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
+

@@ -13,6 +13,8 @@ Respond ONLY with valid JSON matching this exact shape, no extra text:
   "fit_score": number (0-100),
   "strengths": string[],
   "gaps": string[],
+  "project_evaluation": string,
+  "technical_questions": string[],
   "next_step": string,
   "verdict": string
 }`;
