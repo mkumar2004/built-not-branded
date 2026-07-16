@@ -17,8 +17,16 @@ import {
   deleteChunksByReportId,
 } from "../reportsRepo.js";
 
+import fs from "fs";
+
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+
+const uploadDir = process.env.VERCEL ? "/tmp" : "uploads/";
+if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+const upload = multer({ dest: uploadDir });
+
 
 /**
  * POST /api/resume/upload
