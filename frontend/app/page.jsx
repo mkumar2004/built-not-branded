@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChevronDown,
   ArrowRight,
@@ -24,6 +24,7 @@ import {
   Send,
   Terminal,
 } from "lucide-react";
+
 
 /* ------------------------------------------------------------------ */
 /*  Logo Component                                                    */
@@ -59,7 +60,28 @@ const Logo = ({ size = 36 }) => (
 export default function SkillFitLanding() {
   const [activeFaq, setActiveFaq] = useState(null);
   const [previewTab, setPreviewTab] = useState("report");
+  const [activeStep, setActiveStep] = useState(0);
+  const [stepsVisible, setStepsVisible] = useState(false);
 
+  const steps = [
+    { title: "Create Challenge", desc: "Select or define a real-world coding assessment (e.g., API server, UI widget).", icon: Code2 },
+    { title: "Candidates Build", desc: "Applicants write real-world modular code in their own IDEs and push to Git.", icon: GitCommit },
+    { title: "AI Evaluates", desc: "AI processes pull requests, testing performance, structures, and security.", icon: Brain },
+    { title: "Top Ranked", desc: "A unified, vetted dashboard ranks the top developers based on score matches.", icon: BarChart3 },
+    { title: "Hire Vetted Talent", desc: "Review clear evaluation reports and hire with complete certainty.", icon: CheckCircle2 },
+  ];
+
+  useEffect(() => {
+    const t = setTimeout(() => setStepsVisible(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % steps.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, []);
   const toggleFaq = (index) => {
     setActiveFaq(activeFaq === index ? null : index);
   };
@@ -101,7 +123,7 @@ export default function SkillFitLanding() {
               <Sparkles size={14} />
               <span>Next-Gen Project-Based Recruitment</span>
             </div>
-            
+
             <h1 className="hero-title" style={{ marginBottom: "1.5rem" }}>
               Judged by Real Work,<br />
               <span className="text-gradient">Not Paperwork.</span>
@@ -112,8 +134,8 @@ export default function SkillFitLanding() {
             </p>
 
             <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", marginBottom: "3rem" }}>
-               <a href="/Onboard" className="btn btn-primary">Apply as Candidate <ArrowRight size={17} /></a>
-               <a href="/recruiter" className="btn btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "0.8rem 1.6rem", borderRadius: "10px", color: "#fff", fontWeight: 600 }}>Recruiter Console</a>
+              <a href="/Onboard" className="btn btn-primary">Apply as Candidate <ArrowRight size={17} /></a>
+              <a href="/recruiter" className="btn btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "0.8rem 1.6rem", borderRadius: "10px", color: "#fff", fontWeight: 600 }}>Recruiter Console</a>
             </div>
 
             {/* Badges */}
@@ -148,7 +170,7 @@ export default function SkillFitLanding() {
             <div className="legacy-bin-container">
               <div className="legacy-bin">
                 <span className="bin-label">NOT SHORTLISTED</span>
-                
+
                 {/* Resume Paper */}
                 <div className="legacy-paper resume">
                   <div className="paper-title">Resume</div>
@@ -238,7 +260,7 @@ export default function SkillFitLanding() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", fontWeight: "600", color: "white" }}>
                         <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                         </svg>
                         <span>GitHub</span>
                       </div>
@@ -482,69 +504,67 @@ export default function SkillFitLanding() {
       {/* 6. How It Works                                              */}
       {/* ------------------------------------------------------------ */}
       <section id="how-it-works" style={{ padding: "8rem 0" }}>
-        <div className="container">
-          <div style={{ textAlign: "center", marginBottom: "5.5rem" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", borderRadius: "99px", background: "rgba(124, 58, 237, 0.05)", border: "1px solid rgba(124, 58, 237, 0.1)", fontSize: "0.85rem", color: "var(--accent)", marginBottom: "1rem" }}>
-              <Zap size={14} />
-              <span>Simple Setup Workflow</span>
-            </div>
-            <h2 className="section-title">Automate Your Technical Screening</h2>
-            <p className="subtitle" style={{ maxWidth: "600px", margin: "0.5rem auto 0" }}>
-              See how SkillFit bridges the gap between candidate application and the final hiring decision.
-            </p>
-          </div>
+        <div className="relative mt-8">
 
-          <div className="timeline-track-holder">
-            <div className="timeline-track">
-              {/* Connector line */}
-              <div className="timeline-connector" />
+          {/* base connector line (desktop only) */}
+          <div className="absolute left-0 right-0 top-7 hidden h-px bg-white/10 md:block" />
+          {/* animated gradient fill */}
+          <div
+            className="absolute left-0 top-7 hidden h-px bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-400 transition-all duration-700 ease-out md:block"
+            style={{ width: `${(activeStep / (steps.length - 1)) * 100}%` }}
+          />
 
-              {/* Step 1 */}
-              <div className="timeline-step">
-                <div className="timeline-number flex-center">1</div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.5rem" }}>Create Challenge</h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  Select or define a real-world coding assessment (e.g., API server, UI widget).
-                </p>
-              </div>
+          <div className="grid grid-cols-1 gap-14 md:grid-cols-5 md:gap-6">
+            {steps.map((step, i) => {
+              const Icon = step.icon;
+              const isActive = i === activeStep;
+              const isPast = i < activeStep;
 
-              {/* Step 2 */}
-              <div className="timeline-step">
-                <div className="timeline-number flex-center">2</div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.5rem" }}>Candidates Build</h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  Applicants write real-world modular code in their own IDEs and push to Git.
-                </p>
-              </div>
+              return (
+                <div
+                  key={step.title}
+                  className={`relative flex flex-col items-center text-center transition-all duration-700 ease-out ${stepsVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+                    }`}
+                  style={{ transitionDelay: `${i * 120}ms` }}
+                >
+                  <div
+                    className={`relative flex h-14 w-14 items-center justify-center rounded-full border transition-all duration-500 ${isActive
+                      ? "scale-110 border-violet-400 bg-gradient-to-br from-indigo-600 to-violet-600 shadow-[0_0_25px_rgba(124,58,237,0.55)]"
+                      : isPast
+                        ? "border-violet-500/40 bg-violet-500/10"
+                        : "border-white/10 bg-white/5"
+                      }`}
+                  >
+                    {isActive && (
+                      <span className="absolute inset-0 rounded-full border border-violet-400 animate-ping" />
+                    )}
+                    <Icon
+                      size={20}
+                      className={isActive || isPast ? "text-white" : "text-white/40"}
+                      strokeWidth={2}
+                    />
+                  </div>
 
-              {/* Step 3 */}
-              <div className="timeline-step">
-                <div className="timeline-number flex-center">3</div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.5rem" }}>AI Evaluates</h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  AI processes pull requests, testing performance, structures, and security.
-                </p>
-              </div>
+                  <span
+                    className={`mt-3 font-mono text-xs font-bold tracking-wider transition-colors duration-500 ${isActive ? "text-violet-300" : "text-white/25"
+                      }`}
+                  >
+                    STEP {i + 1}
+                  </span>
 
-              {/* Step 4 */}
-              <div className="timeline-step">
-                <div className="timeline-number flex-center">4</div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.5rem" }}>Top Ranked</h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  A unified, vetted dashboard ranks the top developers based on score matches.
-                </p>
-              </div>
+                  <h4
+                    className={`mt-1.5 text-base font-bold transition-colors duration-500 ${isActive ? "text-white" : "text-white/70"
+                      }`}
+                  >
+                    {step.title}
+                  </h4>
 
-              {/* Step 5 */}
-              <div className="timeline-step">
-                <div className="timeline-number flex-center">5</div>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.5rem" }}>Hire Vetted Talent</h4>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: "1.6" }}>
-                  Review clear evaluation reports and hire with complete certainty.
-                </p>
-              </div>
-
-            </div>
+                  <p className="mt-2 max-w-[190px] text-sm leading-relaxed text-slate-400">
+                    {step.desc}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -607,7 +627,7 @@ export default function SkillFitLanding() {
                         <li>94% code coverage on unit test assertions.</li>
                       </ul>
                     </div>
-                    
+
                     <div className="dashboard-card-mini">
                       <h5 style={{ fontSize: "0.85rem", fontWeight: "700", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
                         <AlertCircle size={14} style={{ color: "var(--accent)" }} />
@@ -967,65 +987,70 @@ export default function SkillFitLanding() {
           </div>
         </div>
       </section>
-
-      {/* ------------------------------------------------------------ */}
+{/* ------------------------------------------------------------ */}
       {/* 13. Footer                                                   */}
       {/* ------------------------------------------------------------ */}
       <footer className="footer">
         <div className="container">
-          <div className="footer-columns">
+          <div className="footer-hackathon-row">
             <div className="footer-brand">
               <a href="#" className="footer-logo-title" style={{ textDecoration: "none" }}>
                 <Logo size={28} />
                 <span>SkillFit</span>
               </a>
-              <p style={{ fontSize: "0.85rem", lineHeight: "1.6", maxWidth: "260px" }}>
+              <p style={{ fontSize: "0.85rem", lineHeight: "1.6", maxWidth: "320px" }}>
                 Evaluating candidates on skills and real production code, not degrees.
               </p>
             </div>
 
-            {/* Column 1 */}
-            <div>
-              <h5 className="footer-column-title">Product</h5>
-              <ul className="footer-links-list">
-                <li><a href="#features" className="footer-link">Features</a></li>
-                <li><a href="#how-it-works" className="footer-link">How It Works</a></li>
-                <li><a href="#preview" className="footer-link">Platform Preview</a></li>
-                <li><a href="#benefits" className="footer-link">Benefits</a></li>
-              </ul>
-            </div>
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.04] to-transparent p-6 sm:p-7">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-violet-600/20 blur-3xl" />
 
-            {/* Column 2 */}
-            <div>
-              <h5 className="footer-column-title">Company</h5>
-              <ul className="footer-links-list">
-                <li><a href="#" className="footer-link">About Us</a></li>
-                <li><a href="#" className="footer-link">Careers</a></li>
-                <li><a href="#" className="footer-link">Press Kit</a></li>
-                <li><a href="#" className="footer-link">Vetting Advisors</a></li>
-              </ul>
-            </div>
+              <div className="relative flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-lg shadow-violet-900/30">
+                  <Sparkles size={18} className="text-white" />
+                </div>
 
-            {/* Column 3 */}
-            <div>
-              <h5 className="footer-column-title">Resources</h5>
-              <ul className="footer-links-list">
-                <li><a href="#" className="footer-link">Developer Docs</a></li>
-                <li><a href="#" className="footer-link">Security Center</a></li>
-                <li><a href="#" className="footer-link">Integrations API</a></li>
-                <li><a href="#" className="footer-link">System Status</a></li>
-              </ul>
-            </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h5 className="text-sm font-bold text-white">
+                      OpenAI Codex Hackathon 2026
+                    </h5>
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-400">
+                      Submission
+                    </span>
+                  </div>
 
-            {/* Column 4 */}
-            <div>
-              <h5 className="footer-column-title">Legal</h5>
-              <ul className="footer-links-list">
-                <li><a href="#" className="footer-link">Privacy Policy</a></li>
-                <li><a href="#" className="footer-link">Terms of Service</a></li>
-                <li><a href="#" className="footer-link">Security Policies</a></li>
-                <li><a href="#" className="footer-link">GDPR Compliance</a></li>
-              </ul>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    Built solo for NamasteDev's OpenAI Codex Hackathon — an AI-powered
+                    hiring platform that evaluates real code, not resumes.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      {["Next.js", "Tailwind", "OpenAI Codex", "GitHub API"].map((tech) => (
+                        <span
+                          key={tech}
+                          className="rounded-md border border-violet-500/20 bg-violet-500/[0.08] px-2.5 py-1 font-mono text-[11px] font-medium text-violet-300"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+
+                    <a
+                      href="https://github.com/mkumar2004/built-not-branded"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:border-violet-400/40 hover:bg-violet-500/10"
+                    >
+                      <GitCommit size={13} />
+                      View Source
+                      <ArrowUpRight size={12} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1041,5 +1066,6 @@ export default function SkillFitLanding() {
         </div>
       </footer>
     </div>
+  
   );
 }
