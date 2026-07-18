@@ -1,5 +1,8 @@
+
+
 import express from "express";
 import multer from "multer";
+import fs from "fs";
 
 // Reused as-is from earlier work — adjust these paths to match your actual
 // file locations (your tree differs slightly from my original assumption —
@@ -21,7 +24,21 @@ import {
 } from "../lib/candidateReportsRepo.js";
 
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
+
+// ── Vercel-safe upload dir ───────────────────────────────
+// On Vercel only /tmp is writable, and it's ephemeral per invocation.
+// This was the actual cause of the 500s: multer's diskStorage calls
+// mkdirSync('uploads/') at import time, and Vercel's filesystem is
+// read-only outside /tmp — that mkdirSync throws ENOENT and crashes
+// the whole function (every route in this process), not just this one.
+const uploadDir = process.env.VERCEL ? "/tmp" : "uploads/";
+if (!process.env.VERCEL && !fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+const upload = multer({
+  dest: uploadDir,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 /**
  * POST /api/candidate/submit
@@ -33,9 +50,17 @@ const upload = multer({ dest: "uploads/" });
  * candidate. Anonymous submissions still work — candidate_id stays null.
  */
 router.post("/submit", upload.single("resume"), async (req, res) => {
+  let tempFilePath = req.file?.path;
+
   try {
     const { role, experience_level } = req.body;
-    const githubUrls = req.body.github_urls ? JSON.parse(req.body.github_urls) : [];
+
+    let githubUrls = [];
+    try {
+      githubUrls = req.body.github_urls ? JSON.parse(req.body.github_urls) : [];
+    } catch {
+      return res.status(400).json({ error: "github_urls must be valid JSON" });
+    }
 
     if (!req.file) return res.status(400).json({ error: "resume file is required" });
     if (!role || !experience_level) {
@@ -61,8 +86,20 @@ router.post("/submit", upload.single("resume"), async (req, res) => {
       candidate_id: candidateId,
     });
 
-    const resumeText = await extractResumeText(req.file.path, req.file.mimetype);
-    const repoSources = await fetchAllRepos(githubUrls);
+    let resumeText;
+    try {
+      resumeText = await extractResumeText(req.file.path, req.file.originalname);
+    } catch (err) {
+      return res.status(422).json({ error: `Failed to parse resume file: ${err.message}` });
+    }
+
+    let repoSources = [];
+    try {
+      repoSources = await fetchAllRepos(githubUrls);
+    } catch (err) {
+      console.warn("[candidatePortal/submit] GitHub fetch failed, continuing without repo data:", err.message);
+    }
+
     const sources = [{ label: "resume", text: resumeText }, ...repoSources];
     const chunks = buildChunksFromSources(sources);
 
@@ -97,6 +134,12 @@ router.post("/submit", upload.single("resume"), async (req, res) => {
   } catch (err) {
     console.error("[candidatePortal/submit] error:", err);
     res.status(500).json({ error: err.message });
+  } finally {
+    if (tempFilePath) {
+      fs.unlink(tempFilePath, (unlinkErr) => {
+        if (unlinkErr) console.warn("[candidatePortal/submit] Failed to remove temp file:", unlinkErr.message);
+      });
+    }
   }
 });
 
