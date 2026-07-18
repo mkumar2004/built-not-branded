@@ -11,7 +11,7 @@ import { runMigrations } from "./migrate.js";
 import resumeUploadRoutes from "./router/resumeUpload.js";
 import reportRoutes from "./router/report.js";
 import authRoutes from "./router/auth.js";
-
+import candidatePortalRoutes  from "./router/candidatePortal.js"
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -23,7 +23,7 @@ app.use(express.json());
 app.use("/api/resume", resumeUploadRoutes); // -> POST /api/resume/upload
 app.use("/api/report", reportRoutes);       // -> GET  /api/report
 app.use("/api/auth", authRoutes);           // -> POST /api/auth/sign-up
-
+app.use("/api/candidate", candidatePortalRoutes);
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", message: "SkillFit Backend API is running." });
 });

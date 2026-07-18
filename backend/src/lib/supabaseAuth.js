@@ -82,3 +82,10 @@ export function toSafeUser(user) {
     created_at: user.created_at,
   };
 }
+
+export async function getUserFromToken(token) {
+  const client = getSupabaseAuthClient();
+  const { data, error } = await client.auth.getUser(token);
+  if (error) throw error;
+  return data.user ? toSafeUser(data.user) : null;
+}

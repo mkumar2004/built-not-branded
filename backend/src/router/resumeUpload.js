@@ -15,7 +15,7 @@ import {
   getReportByUserIdentifier,
   updateReport,
   deleteChunksByReportId,
-} from "../reportsRepo.js";
+} from "../services/reportsRepo.js";
 
 import fs from "fs";
 

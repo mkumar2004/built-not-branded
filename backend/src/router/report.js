@@ -1,5 +1,5 @@
 import express from "express";
-import { getReportById, matchChunks, getAllReports } from "../reportsRepo.js";
+import { getReportById, matchChunks, getAllReports } from "../services/reportsRepo.js";
 import { embedText } from "../lib/embed.js";
 import { callAI } from "../lib/router.js";
 

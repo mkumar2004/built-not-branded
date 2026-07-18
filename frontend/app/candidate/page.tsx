@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Github,
   Sparkles,
@@ -78,6 +79,7 @@ const STEPS = [
     items: ["Upload Resume", "GitHub Repository", "Target Role", "Experience Level"],
     accent: "blue",
     journeyLabel: "Submission",
+    href: "/candidate/SubmissionForm",
   },
   {
     id: "02",
@@ -88,6 +90,7 @@ const STEPS = [
     items: ["Fit Score", "Strengths", "Weaknesses", "Transparent Verdict"],
     accent: "cyan",
     journeyLabel: "AI Analysis",
+    href: "/candidate/FitReport",
   },
   {
     id: "03",
@@ -98,6 +101,7 @@ const STEPS = [
     items: ["Personalized Roadmap", "Recommended Next Step", "Learning Suggestions"],
     accent: "purple",
     journeyLabel: "Report",
+    href: "/candidate/Growthpath",
   },
   {
     id: "04",
@@ -108,6 +112,7 @@ const STEPS = [
     items: ["Previous Submissions", "Role History", "Timeline"],
     accent: "orange",
     journeyLabel: "Growth",
+    href: "/candidate/ReportHistory",
   },
   {
     id: "05",
@@ -118,6 +123,7 @@ const STEPS = [
     items: ["Marks Shown as Context", "Never Used to Reject", "Evidence-First Hiring"],
     accent: "gold",
     journeyLabel: "History",
+    href: "/candidate/SubmissionForm",
   },
 ] as const;
 
@@ -380,6 +386,7 @@ function StepCard({
   index: number;
 }) {
   const { ref, visible } = useReveal<HTMLDivElement>();
+  const router = useRouter();
   const a = ACCENTS[step.accent];
   const Icon = step.icon;
   const staggerY = index % 2 === 1 ? "md:translate-y-8" : "";
@@ -435,6 +442,7 @@ function StepCard({
         </div>
 
         <button
+          onClick={() => router.push(step.href)}
           className={`relative mt-auto flex w-fit items-center gap-1.5 pt-2 text-sm font-medium ${a.text} transition-transform duration-300 group-hover:gap-2.5`}
         >
           Learn more
@@ -488,6 +496,7 @@ function TrustBadge({
 export default function SkillFitLanding() {
   const journey = useReveal<HTMLDivElement>();
   const trust = useReveal<HTMLDivElement>();
+  const router = useRouter();
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden font-sans text-white">
@@ -551,7 +560,10 @@ export default function SkillFitLanding() {
           </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-6">
-            <button className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.45)] transition-all duration-300 hover:shadow-[0_0_45px_rgba(99,102,241,0.65)]">
+            <button
+              onClick={() => router.push("/candidate/SubmissionForm")}
+              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_30px_rgba(99,102,241,0.45)] transition-all duration-300 hover:shadow-[0_0_45px_rgba(99,102,241,0.65)]"
+            >
               <span className="relative z-10">Start Your Journey</span>
               <ArrowRight
                 size={18}
@@ -560,7 +572,10 @@ export default function SkillFitLanding() {
               <span className="absolute inset-0 -translate-x-full bg-white/20 transition-transform duration-500 group-hover:translate-x-full" />
             </button>
 
-            <button className="text-[15px] font-medium text-[#9CA8C6] underline-offset-4 transition-colors duration-300 hover:text-white hover:underline">
+            <button
+              onClick={() => router.push("/candidate/FitReport")}
+              className="text-[15px] font-medium text-[#9CA8C6] underline-offset-4 transition-colors duration-300 hover:text-white hover:underline"
+            >
               See Sample Report
             </button>
           </div>

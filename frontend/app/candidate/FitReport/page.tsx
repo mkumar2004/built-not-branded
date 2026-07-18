@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowUp,
   AlertTriangle,
@@ -7,6 +8,7 @@ import {
   CheckCircle2,
   ShieldCheck,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -51,6 +53,7 @@ export default function FitReport() {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Trigger the score count-up + border reveal shortly after first paint.
   useEffect(() => {
@@ -83,9 +86,28 @@ export default function FitReport() {
 
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden px-4 py-10 sm:px-8 sm:py-16 lg:px-16"
+      className="relative min-h-screen w-full overflow-hidden"
       style={{ backgroundColor: NAVY }}
     >
+      {/* Navigation bar */}
+      <div
+        className="relative mx-auto max-w-6xl px-4 pb-2 pt-6 sm:px-8"
+        style={{ zIndex: 10 }}
+      >
+        <button
+          onClick={() => router.push("/candidate")}
+          className="flex items-center gap-1.5 text-sm font-medium transition-colors"
+          style={{ color: "#9CA8C6", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "white")}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#9CA8C6")}
+        >
+          ← Back to Home
+        </button>
+      </div>
+
+      <div
+        className="relative mx-auto max-w-6xl px-4 py-10 sm:px-8 sm:py-16 lg:px-16"
+      >
       {/* ---------------------------------------------------------------- */}
       {/* Ambient background: glows, grid texture, floating particles      */}
       {/* ---------------------------------------------------------------- */}
@@ -338,6 +360,37 @@ export default function FitReport() {
             </p>
           </div>
         </GlassCard>
+      </div>
+
+        {/* -------------------------------------------------------------- */}
+        {/* NAV CTA: to Growth Path                                       */}
+        {/* -------------------------------------------------------------- */}
+        <div className="mt-6 flex flex-col items-center gap-4 text-center">
+          <button
+            onClick={() => router.push("/candidate/Growthpath")}
+            className="group flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:brightness-110"
+            style={{
+              background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`,
+              boxShadow: `0 0 0 rgba(59,130,246,0)`,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 28px ${BLUE}66`;
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 0 rgba(59,130,246,0)`;
+            }}
+          >
+            View Your Growth Path
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </button>
+          <button
+            onClick={() => router.push("/candidate/ReportHistory")}
+            className="text-sm font-medium underline-offset-4 transition-colors hover:text-white hover:underline"
+            style={{ color: MUTED, background: "none", border: "none", cursor: "pointer" }}
+          >
+            View Report History
+          </button>
+        </div>
       </div>
 
       <style>{`

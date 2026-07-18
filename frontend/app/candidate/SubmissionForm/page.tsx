@@ -1,14 +1,6 @@
 "use client"
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-
-/* ------------------------------------------------------------------------
-   SkillFit — Submission Page
-   A premium, evidence-first submission experience for an AI hiring
-   platform. Built as a single self-contained component: layout via
-   Tailwind's core utilities, all bespoke tokens (color / glow / motion)
-   live in the scoped <style> block below since arbitrary-value Tailwind
-   classes aren't available in this environment.
-------------------------------------------------------------------------- */
+import { useRouter } from "next/navigation";
 
 interface FormState {
   fullName: string;
@@ -62,17 +54,22 @@ export default function SkillFitSubmission() {
   const [fileError, setFileError] = useState<string>("");
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [submitError, setSubmitError] = useState<string>("");
+  const router = useRouter();
 
-  // Generate particle positions only after mount. Doing this at module
-  // scope or during the initial render would make the server-rendered
-  // markup (one set of random values) diverge from the client's first
-  // render (a different set), which React flags as a hydration mismatch.
-  // Starting from an empty array keeps the SSR and first-client-render
-  // markup identical; the particles then populate in a harmless
-  // post-hydration update.
   useEffect(() => {
     setParticles(generateParticles(26));
   }, []);
+
+  // Navigate to FitReport after submission is complete
+  useEffect(() => {
+    if (status === "done") {
+      const t = setTimeout(() => {
+        router.push("/candidate/FitReport");
+      }, 1200);
+      return () => clearTimeout(t);
+    }
+  }, [status, router]);
 
   const updateField = useCallback(
     (key: keyof Omit<FormState, "repoLinks">) =>
@@ -140,12 +137,25 @@ export default function SkillFitSubmission() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  // ─── SUBMISSION (no API call — hook this up when ready) ─────────────
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (status !== "idle") return;
+
+    if (!resumeFile) {
+      setFileError("Please upload your resume before submitting.");
+      return;
+    }
+
+    setSubmitError("");
     setStatus("evaluating");
-    window.setTimeout(() => setStatus("done"), 1600);
+
+    // TODO: wire this up to your backend when ready.
+    setTimeout(() => {
+      setStatus("done");
+    }, 1200);
   };
+  // ─────────────────────────────────────────────────────────────────────
 
   const buttonLabel = useMemo(() => {
     if (status === "evaluating") return "Sending to evaluation…";
@@ -188,7 +198,6 @@ export default function SkillFitSubmission() {
           letter-spacing: -0.02em;
         }
 
-        /* ---------- background layers ---------- */
         .sf-bg {
           position: fixed;
           inset: 0;
@@ -243,7 +252,6 @@ export default function SkillFitSubmission() {
           50% { opacity: 0.75; transform: scale(1.5); }
         }
 
-        /* ---------- shell ---------- */
         .sf-shell {
           position: relative;
           z-index: 1;
@@ -300,7 +308,6 @@ export default function SkillFitSubmission() {
         }
         .sf-desc strong { color: #c9d3f5; font-weight: 500; }
 
-        /* ---------- illustration ---------- */
         .sf-illustration {
           position: relative;
           height: 340px;
@@ -368,7 +375,6 @@ export default function SkillFitSubmission() {
           animation: sf-twinkle 2.4s ease-in-out infinite;
         }
 
-        /* ---------- glass cards ---------- */
         .sf-card {
           position: relative;
           background: var(--card);
@@ -451,7 +457,6 @@ export default function SkillFitSubmission() {
         .sf-select { padding-right: 36px; cursor: pointer; }
         .sf-select option { background: #0a0f24; color: var(--text); }
 
-        /* ---------- repo links ---------- */
         .sf-repo-row {
           display: flex;
           gap: 10px;
@@ -494,7 +499,6 @@ export default function SkillFitSubmission() {
           transform: translateY(-1px);
         }
 
-        /* ---------- upload zone ---------- */
         .sf-upload {
           position: relative;
           border: 1.5px dashed rgba(100, 130, 220, 0.4);
@@ -557,7 +561,6 @@ export default function SkillFitSubmission() {
           color: #d3f5e4;
         }
 
-        /* ---------- submit ---------- */
         .sf-submit {
           position: relative;
           width: 100%;
@@ -608,7 +611,6 @@ export default function SkillFitSubmission() {
           margin-right: auto;
         }
 
-        /* ---------- responsive ---------- */
         @media (max-width: 900px) {
           .sf-hero { grid-template-columns: 1fr; gap: 28px; }
           .sf-illustration { order: 2; height: 260px; }
@@ -632,7 +634,6 @@ export default function SkillFitSubmission() {
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
       />
 
-      {/* background */}
       <div className="sf-bg" aria-hidden="true">
         <div className="sf-bg-glow-a" />
         <div className="sf-bg-glow-b" />
@@ -655,7 +656,29 @@ export default function SkillFitSubmission() {
       </div>
 
       <div className="sf-shell">
-        {/* header */}
+        <div style={{ marginBottom: 24 }}>
+          <button
+            type="button"
+            onClick={() => router.push("/candidate")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "none",
+              border: "none",
+              color: "var(--text-secondary)",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: "pointer",
+              padding: 0,
+              transition: "color 0.2s ease",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text)")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)")}
+          >
+            ← Back to Home
+          </button>
+        </div>
         <div className="sf-eyebrow">
           <span className="sf-eyebrow-index">02</span>
           <span className="sf-eyebrow-dot" />
@@ -724,7 +747,6 @@ export default function SkillFitSubmission() {
           </div>
         </div>
 
-        {/* form */}
         <form onSubmit={handleSubmit}>
           <section className="sf-card">
             <h2 className="sf-card-title sf-display">
@@ -914,6 +936,12 @@ export default function SkillFitSubmission() {
               </>
             )}
           </button>
+
+          {submitError && (
+            <p className="sf-upload-error" style={{ textAlign: "center", marginTop: 16 }}>
+              {submitError}
+            </p>
+          )}
 
           <p className="sf-note">
             This submission becomes your evidence. We evaluate what

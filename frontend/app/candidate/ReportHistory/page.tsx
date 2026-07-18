@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FolderArchive,
   Clock,
@@ -88,6 +89,7 @@ const achievements = [
 ];
 
 export default function ReportHistory() {
+  const router = useRouter();
   return (
     <div
       className="relative min-h-screen w-full overflow-hidden px-4 py-10 sm:px-8 sm:py-16 lg:px-16"
@@ -96,6 +98,17 @@ export default function ReportHistory() {
       <Background />
 
       <div className="relative mx-auto max-w-6xl">
+        {/* Back nav */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.push("/candidate")}
+            style={{ color: MUTED, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 500 }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "white")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = MUTED)}
+          >
+            ← Back to Home
+          </button>
+        </div>
         {/* ---------------------------------------------------------------- */}
         {/* HEADER */}
         {/* ---------------------------------------------------------------- */}
@@ -215,14 +228,15 @@ export default function ReportHistory() {
                           <div className="flex items-center gap-4">
                             <button
                               className="flex items-center gap-1 text-sm font-medium transition-colors hover:text-white"
-                              style={{ color: BLUE }}
+                              style={{ color: BLUE, background: "none", border: "none", cursor: "pointer" }}
+                              onClick={() => router.push("/candidate/FitReport")}
                             >
                               View Report
                               <ArrowRight className="h-3.5 w-3.5" />
                             </button>
                             <button
                               className="text-sm font-medium transition-colors hover:text-white"
-                              style={{ color: MUTED }}
+                              style={{ color: MUTED, background: "none", border: "none", cursor: "pointer" }}
                             >
                               Compare
                             </button>
@@ -344,6 +358,7 @@ export default function ReportHistory() {
             <button
               className="group flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:brightness-110"
               style={{ background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})` }}
+              onClick={() => router.push("/candidate/SubmissionForm")}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 28px ${BLUE}66`;
               }}

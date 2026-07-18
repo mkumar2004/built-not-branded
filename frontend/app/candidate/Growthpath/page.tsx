@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Hammer,
@@ -78,6 +79,7 @@ const difficultyColor: Record<RoadmapItem["difficulty"], string> = {
 };
 
 export default function GrowthPath() {
+  const router = useRouter();
   return (
     <div
       className="relative min-h-screen w-full overflow-hidden px-4 py-10 sm:px-8 sm:py-16 lg:px-16"
@@ -86,6 +88,17 @@ export default function GrowthPath() {
       <Background />
 
       <div className="relative mx-auto max-w-6xl">
+        {/* Back nav */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.push("/candidate")}
+            style={{ color: MUTED, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 13, fontWeight: 500 }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "white")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = MUTED)}
+          >
+            ← Back to Home
+          </button>
+        </div>
         {/* ---------------------------------------------------------------- */}
         {/* HEADER */}
         {/* ---------------------------------------------------------------- */}
@@ -286,6 +299,7 @@ export default function GrowthPath() {
                   background: `linear-gradient(135deg, ${BLUE}, ${PURPLE})`,
                   boxShadow: `0 0 0 rgba(59,130,246,0)`,
                 }}
+                onClick={() => router.push("/candidate/SubmissionForm")}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 28px ${BLUE}66`;
                 }}
@@ -298,7 +312,8 @@ export default function GrowthPath() {
               </button>
               <button
                 className="text-sm font-medium underline-offset-4 transition-colors hover:text-white hover:underline"
-                style={{ color: MUTED }}
+                style={{ color: MUTED, background: "none", border: "none", cursor: "pointer" }}
+                onClick={() => router.push("/candidate/ReportHistory")}
               >
                 View Previous Report
               </button>

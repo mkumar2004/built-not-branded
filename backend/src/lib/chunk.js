@@ -1,9 +1,21 @@
 /**
+ * Removes characters Postgres can't store in text/jsonb columns:
+ * - null bytes (\u0000) — commonly introduced by PDF text extraction
+ * - unpaired UTF-16 surrogates — can appear from bad encoding/decoding
+ * Without this, Supabase inserts fail with "unsupported Unicode escape sequence".
+ */
+function sanitizeText(text) {
+  return text
+    .replace(/\u0000/g, "")
+    .replace(/[\uD800-\uDFFF]/g, "");
+}
+
+/**
  * Splits long text into overlapping chunks suitable for embedding.
  * Overlap helps preserve context across chunk boundaries.
  */
 export function chunkText(text, { chunkSize = 500, overlap = 80 } = {}) {
-  const clean = text.replace(/\s+/g, " ").trim();
+  const clean = sanitizeText(text).replace(/\s+/g, " ").trim();
   if (!clean) return [];
 
   const chunks = [];

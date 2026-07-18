@@ -42,7 +42,7 @@ export default function SignupPage() {
       const response = await signUp(email, password, role);
       if (!response.session || !response.role) throw new Error("No session was returned. Please try again.");
       setSession(response.session, response.user ?? null, response.role);
-      router.push(response.role === "candidate" ? "/candidate/dashboard" : "/recruiter/dashboard");
+      router.push(response.role === "candidate" ? "/candidate" : "/recruiter");
     } catch (requestError) {
       setRequestError(requestError instanceof Error ? requestError.message : "Unable to create your account.");
     } finally {
