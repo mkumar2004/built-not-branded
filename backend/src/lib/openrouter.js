@@ -3,6 +3,7 @@
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const OPENROUTER_MODEL = "meta-llama/llama-3.3-70b-instruct:free"; // free-tier model
+const REQUEST_TIMEOUT_MS = 15000;
 
 export async function callOpenRouter(messages, jsonMode = true) {
   const apiKey = process.env.OPENROUTER_API_KEY || process.env.open_Router_ai;
@@ -20,14 +21,28 @@ export async function callOpenRouter(messages, jsonMode = true) {
     reqBody.response_format = { type: "json_object" };
   }
 
-  const res = await fetch(OPENROUTER_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(reqBody),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res;
+  try {
+    res = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(reqBody),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      throw new Error(`OpenRouter request timed out after ${REQUEST_TIMEOUT_MS}ms (network unreachable or too slow)`);
+    }
+    throw new Error(`OpenRouter request failed: ${err.message}`);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const errText = await res.text();

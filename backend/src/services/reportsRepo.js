@@ -3,8 +3,6 @@ import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
 
-// Load .env before reading env vars — needed because ESM imports are hoisted
-// and this module is evaluated before dotenv.config() runs in server.js.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(__dirname, "../.env") });
 
@@ -23,7 +21,6 @@ if (supabaseUrl && supabaseAnonKey) {
   console.warn("[reportsRepo] Supabase env variables missing. Running in in-memory fallback mode.");
 }
 
-// In-memory fallbacks
 const mockReports = new Map();
 const mockChunks = [];
 
@@ -43,7 +40,6 @@ export async function createReport({ role, experience_level, github_urls, user_i
     }
   }
 
-  // Fallback
   const id = Math.random().toString(36).substring(2, 15);
   const report = {
     id,
@@ -103,25 +99,29 @@ export async function saveAnalysis(id, analysis) {
   return report || null;
 }
 
+// ── PATCHED: now throws instead of silently swallowing, so a failed
+// insert surfaces as a visible 500 with the real Supabase error message
+// instead of quietly producing 0 retrievable chunks later.
 export async function insertChunks(reportId, embeddedChunks) {
   if (supabase) {
-    try {
-      const rows = embeddedChunks.map((c) => ({
-        report_id: reportId,
-        source: c.source,
-        content: c.content,
-        embedding: c.embedding,
-      }));
+    const rows = embeddedChunks.map((c) => ({
+      report_id: reportId,
+      source: c.source,
+      content: c.content,
+      embedding: c.embedding,
+    }));
 
-      const { error } = await supabase.from("chunks").insert(rows);
-      if (error) throw error;
-      return;
-    } catch (err) {
-      console.error("[reportsRepo] Supabase insertChunks error, falling back:", err.message);
+    const { error } = await supabase.from("chunks").insert(rows);
+    if (error) {
+      console.error("[reportsRepo] Supabase insertChunks FAILED:", error.message, error.details || "", error.hint || "");
+      throw new Error(`Failed to insert chunks into Supabase: ${error.message}`);
     }
+
+    console.log(`[reportsRepo] Successfully inserted ${rows.length} chunks for report ${reportId}`);
+    return;
   }
 
-  // Fallback
+  // Fallback (only reached if Supabase client was never initialized)
   embeddedChunks.forEach((c) => {
     mockChunks.push({
       report_id: reportId,
@@ -130,54 +130,77 @@ export async function insertChunks(reportId, embeddedChunks) {
       embedding: c.embedding,
     });
   });
+  console.log(`[reportsRepo] Stored ${embeddedChunks.length} chunks in-memory (no Supabase client)`);
 }
 
 function dotProduct(a, b) {
   return a.reduce((sum, val, i) => sum + val * b[i], 0);
 }
 
+// Supabase/PostgREST returns pgvector columns as a string like "[0.1,-0.2,...]",
+// not a parsed array — this was silently breaking every similarity calculation
+// ("a.reduce is not a function") and made every retrieval look empty.
+function toVector(embedding) {
+  if (Array.isArray(embedding)) return embedding;
+  if (typeof embedding === "string") {
+    try {
+      return JSON.parse(embedding);
+    } catch {
+      // Fallback for non-JSON pgvector text formats, e.g. "(1,2,3)"
+      return embedding
+        .replace(/[[\]()]/g, "")
+        .split(",")
+        .map(Number);
+    }
+  }
+  return embedding;
+}
+
 export async function matchChunks(reportId, queryEmbedding, limit = 8) {
   if (supabase) {
     try {
-      // Calls match_chunks RPC on Supabase
       const { data, error } = await supabase.rpc("match_chunks", {
         query_embedding: queryEmbedding,
-        match_threshold: 0.0, // accept any match and sort by similarity
+        match_threshold: 0.0,
         match_count: limit,
         filter_report_id: reportId,
       });
 
       if (error) throw error;
-      return data;
+      if (data && data.length > 0) return data;
+
+      console.warn(`[reportsRepo] match_chunks RPC returned 0 rows for report ${reportId}, trying raw query fallback`);
     } catch (err) {
-      console.error("[reportsRepo] Supabase matchChunks RPC failed, trying raw query fallback:", err.message);
-      // Fallback query if RPC isn't set up
-      try {
-        const { data, error } = await supabase
-          .from("chunks")
-          .select("source, content, embedding")
-          .eq("report_id", reportId);
+      console.error("[reportsRepo] Supabase matchChunks RPC failed:", err.message);
+    }
 
-        if (error) throw error;
+    try {
+      const { data, error } = await supabase
+        .from("chunks")
+        .select("source, content, embedding")
+        .eq("report_id", reportId);
 
-        // Perform similarity matching in JS
-        const scored = data.map((chunk) => {
-          const sim = dotProduct(chunk.embedding, queryEmbedding);
-          return { ...chunk, similarity: sim };
-        });
-        scored.sort((a, b) => b.similarity - a.similarity);
-        return scored.slice(0, limit);
-      } catch (innerErr) {
-        console.error("[reportsRepo] Supabase raw query fallback also failed:", innerErr.message);
-      }
+      if (error) throw error;
+
+      console.log(`[reportsRepo] Raw query found ${data.length} chunks for report ${reportId}`);
+
+      const scored = data.map((chunk) => {
+        const vec = toVector(chunk.embedding);
+        const sim = dotProduct(vec, queryEmbedding);
+        return { ...chunk, embedding: vec, similarity: sim };
+      });
+      scored.sort((a, b) => b.similarity - a.similarity);
+      return scored.slice(0, limit);
+    } catch (innerErr) {
+      console.error("[reportsRepo] Supabase raw query fallback also failed:", innerErr.message);
     }
   }
 
-  // Fallback: match based on local data
   const filtered = mockChunks.filter((c) => c.report_id === reportId);
   const scored = filtered.map((c) => {
-    const sim = dotProduct(c.embedding, queryEmbedding);
-    return { ...c, similarity: sim };
+    const vec = toVector(c.embedding);
+    const sim = dotProduct(vec, queryEmbedding);
+    return { ...c, embedding: vec, similarity: sim };
   });
   scored.sort((a, b) => b.similarity - a.similarity);
   return scored.slice(0, limit);
@@ -202,7 +225,6 @@ export async function getReportByUserIdentifier({ user_id, email }) {
     }
   }
 
-  // Fallback
   for (const report of mockReports.values()) {
     if (user_id && report.user_id === user_id) return report;
     if (email && report.email === email) return report;
@@ -226,7 +248,6 @@ export async function updateReport(id, { role, experience_level, github_urls }) 
     }
   }
 
-  // Fallback
   const report = mockReports.get(id);
   if (report) {
     report.role = role;
@@ -251,7 +272,6 @@ export async function deleteChunksByReportId(reportId) {
     }
   }
 
-  // Fallback
   for (let i = mockChunks.length - 1; i >= 0; i--) {
     if (mockChunks[i].report_id === reportId) {
       mockChunks.splice(i, 1);
@@ -276,4 +296,3 @@ export async function getAllReports() {
 
   return Array.from(mockReports.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
-
